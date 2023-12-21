@@ -5,6 +5,9 @@
 
 Userscript to extend the functionality of Microsoft Bing
 
+| [Greasy Fork](https://greasyfork.org/scripts/482804-microsoft-bing-extender) | [GitHub](https://github.com/Kakejoyu/MicrosoftBingExtender) |
+|--|--|
+
 ## Features
 
 - Highlight answers of Microsoft Rewards quiz.
@@ -37,7 +40,7 @@ Example:
 
 ### Stable version
 
-Install from Greasy Fork
+[Install from Greasy Fork](https://update.greasyfork.org/scripts/482804/Microsoft%20Bing%20Extender.user.js)
 
 ### Development version
 

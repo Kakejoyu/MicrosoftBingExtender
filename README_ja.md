@@ -5,6 +5,9 @@
 
 Microsoft Bingの機能を拡張するユーザースクリプト
 
+| [Greasy Fork](https://greasyfork.org/scripts/482804-microsoft-bing-extender) | [GitHub](https://github.com/Kakejoyu/MicrosoftBingExtender) |
+|--|--|
+
 ## 機能
 
 - マイクロソフトリワードクイズの答えをハイライトする。
@@ -37,7 +40,7 @@ Microsoft Bingの機能を拡張するユーザースクリプト
 
 ### 安定版
 
-Greasy Forkからインストール
+[Greasy Forkからインストール](https://update.greasyfork.org/scripts/482804/Microsoft%20Bing%20Extender.user.js)
 
 ### 開発版
 
