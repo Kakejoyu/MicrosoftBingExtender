@@ -3,7 +3,7 @@
 | English | [日本語](https://github.com/Kakejoyu/MicrosoftBingExtender/blob/main/README_ja.md) |
 |--|--|
 
-Userscript to extend the functionality of Microsoft Bing
+User script to extend the functionality of Microsoft Bing
 
 | [Greasy Fork](https://greasyfork.org/scripts/482804-microsoft-bing-extender) | [GitHub](https://github.com/Kakejoyu/MicrosoftBingExtender) |
 |--|--|
@@ -17,19 +17,19 @@ Userscript to extend the functionality of Microsoft Bing
 - Microsoft may ban you for using Automate search feature. Use at your own risk. And I will not take any responsibility.
 ```
 
-- Switching UI themes of userscript.
+- Switching UI themes of user script.
 
 ## Note
 
 ```diff
-+ Userscript cannot change the user agent. Therefore, to earn points on the mobile version, please use a browser extension that changes the user agent, such as "User-Agent Switcher for Chrome".
++ User script cannot change the user agent. Therefore, to earn points on the mobile version, please use a browser extension that changes the user agent, such as "User-Agent Switcher for Chrome".
 ```
 
 [User-Agent Switcher for Chrome](https://chromewebstore.google.com/detail/user-agent-switcher-for-c/djflhoibgkdhkhhcedjiklpkjnoahfmg)
 
 ## Requirement
 
-- Userscript manager extension
+- User script manager extension
 
 Example:
 
