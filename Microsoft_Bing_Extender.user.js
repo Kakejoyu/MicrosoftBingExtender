@@ -2,9 +2,9 @@
 // @name        Microsoft Bing Extender
 // @name:ja     Microsoft Bing Extender
 // @namespace   https://github.com/Kakejoyu/MicrosoftBingExtender
-// @version     1.0.0
+// @version     1.0.1
 // @icon        https://www.bing.com/favicon.ico
-// @description User scripts to enhance the functionality of Microsoft Bing
+// @description User script to enhance the functionality of Microsoft Bing
 // @description:ja Microsoft Bingの機能を強化するユーザースクリプト
 // @author      Kakejoyu
 // @supportURL  https://github.com/Kakejoyu/MicrosoftBingExtender/issues
@@ -60,8 +60,7 @@ const i18nLib = {
         automateSearchOpen: "Open Automate Search",
         gettingFromApiMsg: "Getting words from API...",
         runningSearchMsg: "Running Automate search... [Remaining: ",
-        searchFinishedMsg:
-            "Automate search finished! Redirecting to homepage...",
+        searchFinishedMsg: "Automate search finished! Redirecting to homepage...",
         searchCanceledMsg: "Automate search canceled!",
         searchesNumLabel: "Number of Searches:",
         coolTimeLabel: "Cool Time",
@@ -71,7 +70,7 @@ const i18nLib = {
         automateSearchWarning:
             "Microsoft may ban you for using this feature. Use at your own risk. And I will not take any responsibility.",
         automateSearchInfo:
-            'Userscript cannot change the user agent. Therefore, to earn points on the mobile version, please use a browser extension that changes the user agent, such as "<a href="https://chromewebstore.google.com/detail/user-agent-switcher-for-c/djflhoibgkdhkhhcedjiklpkjnoahfmg" target="_blank" rel="noopener noreferrer">User-Agent Switcher for Chrome</a>".',
+            'User script cannot change the user agent. Therefore, to earn points on the mobile version, please use a browser extension that changes the user agent, such as "<a href="https://chromewebstore.google.com/detail/user-agent-switcher-for-c/djflhoibgkdhkhhcedjiklpkjnoahfmg" target="_blank" rel="noopener noreferrer">User-Agent Switcher for Chrome</a>".',
         highlightAnswers: "Highlight Answers",
         english: "English",
         japanese: "Japanese",
@@ -83,14 +82,8 @@ const i18nLib = {
 };
 const i18n = (key) => i18nLib[lang][key] || `i18n[${lang}][${key}] not found`;
 
-if (GM_getValue("automateSearch") || GM_getValue("automateSearch") == null) {
-    const startAutomateSearch = (
-        searchesNum,
-        coolTimeMin,
-        coolTimeMax,
-        minLength,
-        maxLength
-    ) => {
+if (GM_getValue("automateSearch", true)) {
+    const startAutomateSearch = (searchesNum, coolTimeMin, coolTimeMax, minLength, maxLength) => {
         GM_setValue("searchesNum", searchesNum);
         GM_setValue("coolTimeMin", coolTimeMin);
         GM_setValue("coolTimeMax", coolTimeMax);
@@ -220,8 +213,7 @@ if (GM_getValue("automateSearch") || GM_getValue("automateSearch") == null) {
             });
             searchTimer = setTimeout(
                 inputSend,
-                Math.floor(Math.random() * (coolTimeMax - coolTimeMin)) +
-                    coolTimeMin
+                Math.floor(Math.random() * (coolTimeMax - coolTimeMin)) + coolTimeMin
             );
         } else {
             if (GM_getValue("isFinished")) {
@@ -245,38 +237,40 @@ if (GM_getValue("automateSearch") || GM_getValue("automateSearch") == null) {
 
     const showAutomateSearchUI = () => {
         let UIcss;
-        if (GM_getValue("darkMode")) {
-            UIcss = `#as-bg{position: fixed;z-index: 999999;background-color: rgba(0, 0, 0, 0.8);left: 0px;top: 0px;}
-#as-fg *{color: #ffffff;margin: 5px;}
-#as-fg{width: 50%;height: 80%;padding: 10px;position: absolute;top: 10%;left: 25%;background: #111111;border-radius: 20px;}
-#as-close{position: absolute;right: 10px;top: 10px;width: 32px;height: 32px;cursor: pointer;fill: #ffffff;}
+        if (GM_getValue("darkMode", true)) {
+            UIcss = `body {overflow: hidden;}
+#as-bg {position: fixed;z-index: 999999;background-color: rgba(0, 0, 0, 0.8);left: 0px;top: 0px;user-select: none;-moz-user-select: none;}
+#as-fg {width: 50%;height: 82%;padding: 15px;position: absolute;top: 10%;left: 25%;background: #111111;border-radius: 20px;}
+#as-fg * {margin: 7px 0;font-family: sans-serif;font-size: 15px;color: #ffffff;}
+#as-close {position: absolute;right: 10px;top: 10px;width: 32px;height: 32px;cursor: pointer;fill: currentColor;}
 #as-fg p.as-warning{background: rgb(196, 0, 0);color: #fff;padding: 10px;border-radius: 5px;}
 #as-fg p.as-info{background: rgb(0 86 196);color: #fff;padding: 10px;border-radius: 5px;}
 #as-fg p.as-info a{text-decoration: underline;font-weight: bold;}
-label{display: inline-block;}
-.as-title{font-size: 30px;font-weight: bold;}
-.as-bold{font-weight: bold;}
-.as-input{background: #111111;border: 3px solid #666;border-radius: 5px;height: 30px;padding: 5px;font-size: 25px;width: 60px;}
-.as-input:hover{background: #2b2b2b;}
-.as-input:focus{background: #3a3a3a;}
-#as-search-start-btn{background: #1b1b1b;border: 3px solid #666;border-radius: 5px;height: 45px;width: 100%;padding: 5px;font-size: 25px;cursor: pointer;}
-#as-search-start-btn:hover{background: #2b2b2b;}`;
+#as-fg label{display: inline-block;}
+#as-fg .as-title{font-size: 30px;font-weight: bold;}
+#as-fg .as-bold{font-weight: bold;}
+#as-fg .as-input{background: #111111;border: 3px solid #666;border-radius: 5px;height: 30px;padding: 5px;font-size: 25px;width: 60px;}
+#as-fg .as-input:hover{background: #2b2b2b;}
+#as-fg .as-input:focus{background: #3a3a3a;}
+#as-fg #as-search-start-btn{background: #1b1b1b;border: 3px solid #666;border-radius: 5px;height: 45px;width: 100%;padding: 5px;font-size: 25px;cursor: pointer;}
+#as-fg #as-search-start-btn:hover{background: #2b2b2b;}`;
         } else {
-            UIcss = `#as-bg{position: fixed;z-index: 999999;background-color: rgba(0, 0, 0, 0.8);left: 0px;top: 0px;}
-#as-fg *{color: #000000;margin: 5px;}
-#as-fg{width: 50%;height: 80%;padding: 10px;position: absolute;top: 10%;left: 25%;background: #ffffff;border-radius: 20px;}
-#as-close{position: absolute;right: 10px;top: 10px;width: 32px;height: 32px;cursor: pointer;fill: #000000;}
+            UIcss = `body {overflow: hidden;}
+#as-bg {position: fixed;z-index: 999999;background-color: rgba(0, 0, 0, 0.8);left: 0px;top: 0px;user-select: none;-moz-user-select: none;}
+#as-fg {width: 50%;height: 82%;padding: 15px;position: absolute;top: 10%;left: 25%;background: #ffffff;border-radius: 20px;}
+#as-fg * {margin: 7px 0;font-family: sans-serif;font-size: 15px;color: #111111;}
+#as-close {position: absolute;right: 10px;top: 10px;width: 32px;height: 32px;cursor: pointer;fill: currentColor;}
 #as-fg p.as-warning{background: rgb(196, 0, 0);color: #fff;padding: 10px;border-radius: 5px;}
 #as-fg p.as-info{background: rgb(0 86 196);color: #fff;padding: 10px;border-radius: 5px;}
 #as-fg p.as-info a{color: #fff;text-decoration: underline;font-weight: bold;}
-label{display: inline-block;}
-.as-title{font-size: 30px;font-weight: bold;}
-.as-bold{font-weight: bold;}
-.as-input{background: #ffffff;border: 3px solid #666;border-radius: 5px;height: 30px;padding: 5px;font-size: 25px;width: 60px;}
-.as-input:hover{background: #dddddd;}
-.as-input:focus{background: #b3b3b3;}
-#as-search-start-btn{background: #cacaca;border: 3px solid #666;border-radius: 5px;height: 45px;width: 100%;padding: 5px;font-size: 25px;cursor: pointer;}
-#as-search-start-btn:hover{background: #a1a1a1;}`;
+#as-fg label{display: inline-block;}
+#as-fg .as-title{font-size: 30px;font-weight: bold;}
+#as-fg .as-bold{font-weight: bold;}
+#as-fg .as-input{background: #ffffff;border: 3px solid #666;border-radius: 5px;height: 30px;padding: 5px;font-size: 25px;width: 60px;}
+#as-fg .as-input:hover{background: #dddddd;}
+#as-fg .as-input:focus{background: #b3b3b3;}
+#as-fg #as-search-start-btn{background: #cacaca;border: 3px solid #666;border-radius: 5px;height: 45px;width: 100%;padding: 5px;font-size: 25px;cursor: pointer;}
+#as-fg #as-search-start-btn:hover{background: #a1a1a1;}`;
         }
         $("#as-bg").remove();
         let bg = $(`<div id="as-bg">
@@ -285,36 +279,39 @@ label{display: inline-block;}
             <!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
             <path d="M256 48a208 208 0 1 1 0 416 208 208 0 1 1 0-416zm0 464A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM175 175c-9.4 9.4-9.4 24.6 0 33.9l47 47-47 47c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l47-47 47 47c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-47-47 47-47c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0l-47 47-47-47c-9.4-9.4-24.6-9.4-33.9 0z"></path>
         </svg>
-        <p class="as-title">${i18n(
-            "automateSearch"
-        )}</p><p class="as-warning">${i18n("automateSearchWarning")}</p>
+        <p class="as-title">${i18n("automateSearch")}</p><p class="as-warning">${i18n(
+            "automateSearchWarning"
+        )}</p>
         <p class="as-info">${i18n("automateSearchInfo")}</p>
         <label>${i18n(
             "searchesNumLabel"
-        )}<input class="as-input" type="number" value="${
-            GM_getValue("searchesNum") || "60"
-        }" step="1" min="1" id="as-searches-num"></label><br><span class="as-bold">${i18n(
+        )}<input class="as-input" type="number" value="${GM_getValue(
+            "searchesNum",
+            "60"
+        )}" step="1" min="1" id="as-searches-num"></label><br><span class="as-bold">${i18n(
             "coolTimeLabel"
         )}</span><br>
         <label>${i18n(
             "coolTimeMinLabel"
-        )}<input class="as-input" type="number" value="${
-            GM_getValue("coolTimeMin") || "4"
-        }" min="1" id="as-cool-time-min"></label><label>${i18n(
+        )}<input class="as-input" type="number" value="${GM_getValue(
+            "coolTimeMin",
+            "4"
+        )}" min="1" id="as-cool-time-min"></label><label>${i18n(
             "coolTimeMaxLabel"
-        )}<input class="as-input" type="number" value="${
-            GM_getValue("coolTimeMax") || "7"
-        }" min="1" id="as-cool-time-max"></label><br>
+        )}<input class="as-input" type="number" value="${GM_getValue(
+            "coolTimeMax",
+            "7"
+        )}" min="1" id="as-cool-time-max"></label><br>
         <span class="as-bold">${i18n("lengthLabel")}</span><br>
-        <label>${i18n(
-            "maxLengthLabel"
-        )}<input class="as-input" type="number" value="${
-            GM_getValue("minLength") || "4"
-        }" min="1" id="as-min-length"></label><label>${i18n(
+        <label>${i18n("maxLengthLabel")}<input class="as-input" type="number" value="${GM_getValue(
+            "minLength",
+            "4"
+        )}" min="1" id="as-min-length"></label><label>${i18n(
             "minLengthLabel"
-        )}<input class="as-input" type="number" value="${
-            GM_getValue("maxLength") || "7"
-        }" min="1" id="as-max-length"></label>
+        )}<input class="as-input" type="number" value="${GM_getValue(
+            "maxLength",
+            "7"
+        )}" min="1" id="as-max-length"></label>
         <button id="as-search-start-btn">${i18n("searchStartBtn")}</button>
     </div>
     <style>${UIcss}</style>
@@ -363,13 +360,10 @@ const registerMenu = () => {
             GM_setValue(item, true);
             menu[i][1] = true;
         }
-        menuId[i] = GM_registerMenuCommand(
-            `${menu[i][1] ? "✅" : "❌"} ${i18n(item)}`,
-            () => {
-                GM_setValue(item, !menu[i][1]);
-                registerMenu();
-            }
-        );
+        menuId[i] = GM_registerMenuCommand(`${menu[i][1] ? "✅" : "❌"} ${i18n(item)}`, () => {
+            GM_setValue(item, !menu[i][1]);
+            registerMenu();
+        });
     }
 
     return Object.freeze({
