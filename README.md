@@ -5,27 +5,21 @@
 
 User script to extend the functionality of Microsoft Bing
 
-| [Greasy Fork](https://greasyfork.org/scripts/482804-microsoft-bing-extender) | [GitHub](https://github.com/Kakejoyu/MicrosoftBingExtender) |
-|--|--|
+| Links |
+|--|
+| [Greasy Fork](https://greasyfork.org/scripts/482804-microsoft-bing-extender) |
+| [GitHub](https://github.com/Kakejoyu/MicrosoftBingExtender) |
 
 ## Features
 
 - Highlight answers of Microsoft Rewards quiz.
 - Automate search feature.
-
-```diff
-- Microsoft may ban you for using Automate search feature. Use at your own risk. And I will not take any responsibility.
-```
-
 - Switching UI themes of user script.
 
 ## Note
 
-```diff
-+ User script cannot change the user agent. Therefore, to earn points on the mobile version, please use a browser extension that changes the user agent, such as "User-Agent Switcher for Chrome".
-```
-
-[User-Agent Switcher for Chrome](https://chromewebstore.google.com/detail/user-agent-switcher-for-c/djflhoibgkdhkhhcedjiklpkjnoahfmg)
+- **Microsoft may ban you for using Automate search feature. Use at your own risk. And I will not take any responsibility.**
+- User script cannot change the user agent. Therefore, to earn points on the mobile version, please use a browser extension that changes the user agent, such as "[User-Agent Switcher for Chrome](https://chromewebstore.google.com/detail/user-agent-switcher-for-c/djflhoibgkdhkhhcedjiklpkjnoahfmg)".
 
 ## Requirement
 

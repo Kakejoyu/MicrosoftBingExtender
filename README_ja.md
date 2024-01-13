@@ -5,27 +5,21 @@
 
 Microsoft Bingの機能を拡張するユーザースクリプト
 
-| [Greasy Fork](https://greasyfork.org/scripts/482804-microsoft-bing-extender) | [GitHub](https://github.com/Kakejoyu/MicrosoftBingExtender) |
-|--|--|
+| リンク |
+|--|
+| [Greasy Fork](https://greasyfork.org/scripts/482804-microsoft-bing-extender) |
+| [GitHub](https://github.com/Kakejoyu/MicrosoftBingExtender) |
 
 ## 機能
 
 - マイクロソフトリワードクイズの答えをハイライトする。
 - 検索機能の自動化。
-
-```diff
-- この機能を使用した場合、MicrosoftはあなたをBANする可能性があります。自己責任で使用してください。私は一切の責任を負いません。
-```
-
 - ユーザースクリプトのUIテーマの切り替え。
 
 ## 備考
 
-```diff
-+ ユーザースクリプトでは、ユーザーエージェントを変更することはできません。そのため、モバイル版でポイントを獲得するには、「User-Agent Switcher for Chrome」など、ユーザーエージェントを変更するブラウザ拡張機能をご利用ください。
-```
-
-[User-Agent Switcher for Chrome](https://chromewebstore.google.com/detail/user-agent-switcher-for-c/djflhoibgkdhkhhcedjiklpkjnoahfmg)
+- **この機能を使用した場合、MicrosoftはあなたをBANする可能性があります。自己責任で使用してください。私は一切の責任を負いません。**
+- ユーザースクリプトでは、ユーザーエージェントを変更することはできません。そのため、モバイル版でポイントを獲得するには、「[User-Agent Switcher for Chrome](https://chromewebstore.google.com/detail/user-agent-switcher-for-c/djflhoibgkdhkhhcedjiklpkjnoahfmg)」など、ユーザーエージェントを変更するブラウザ拡張機能をご利用ください。
 
 ## 必要要件
 
