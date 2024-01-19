@@ -2,10 +2,10 @@
 // @name        Microsoft Bing Extender
 // @name:ja     Microsoft Bing Extender
 // @namespace   https://github.com/Kakejoyu/MicrosoftBingExtender
-// @version     1.1.0
+// @version     1.1.1
 // @icon        https://www.bing.com/favicon.ico
-// @description     User script to enhance the functionality of Microsoft Bing
-// @description:ja  Microsoft Bingの機能を強化するユーザースクリプト
+// @description     User script to extend the functionality of Microsoft Bing
+// @description:ja  Microsoft Bingの機能を拡張するユーザースクリプト
 // @author      Kakejoyu
 // @supportURL  https://github.com/Kakejoyu/MicrosoftBingExtender/issues
 // @match       http*://www.bing.com/*
@@ -357,12 +357,12 @@ jQuery(($) => {
     <p class="mbe-info">${i18n('automateSearchInfo')}</p>
     <h2>${i18n('lengthLabel')}</h2>
       <label>${i18n(
-        'maxLengthLabel'
+        'minLengthLabel'
       )}<input class="mbe-input" type="number" value="${GM_getValue(
         'minLength',
         '4'
       )}" min="1" id="mbe-min-length"></label>&nbsp;<label>${i18n(
-        'minLengthLabel'
+        'maxLengthLabel'
       )}<input class="mbe-input" type="number" value="${GM_getValue(
         'maxLength',
         '7'
