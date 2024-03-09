@@ -61,8 +61,8 @@ jQuery(($) => {
       searchStartBtn: '検索開始',
       automateSearchWarning:
         'この機能を使用した場合、MicrosoftはあなたをBANする可能性があります。自己責任で使用してください。私は一切の責任を負いません。',
-      automateSearchInfo:
-        'ユーザースクリプトでは、ユーザーエージェントを変更することはできません。そのため、モバイル版でポイントを獲得するには、「<a href="https://chromewebstore.google.com/detail/user-agent-switcher-for-c/djflhoibgkdhkhhcedjiklpkjnoahfmg" target="_blank" rel="noopener noreferrer">User-Agent Switcher for Chrome</a>」など、ユーザーエージェントを変更するブラウザ拡張機能をご利用ください。',
+      searchPausedMsg: '自動検索が一時停止されました。',
+      searchRestartMsg: '自動検索を再開します。',
     },
     en: {
       automateSearch: 'Automate Search',
@@ -91,55 +91,92 @@ jQuery(($) => {
       searchStartBtn: 'Start search',
       automateSearchWarning:
         'Microsoft may ban you for using this feature. Use at your own risk. And I will not take any responsibility.',
-      automateSearchInfo:
-        'User script cannot change the user agent. Therefore, to earn points on the mobile version, please use a browser extension that changes the user agent, such as "<a href="https://chromewebstore.google.com/detail/user-agent-switcher-for-c/djflhoibgkdhkhhcedjiklpkjnoahfmg" target="_blank" rel="noopener noreferrer">User-Agent Switcher for Chrome</a>".',
+      searchPausedMsg: 'Automatic search has been paused.',
+      searchRestartMsg: 'Restart automatic search.',
     },
   };
   const i18n = (key) => i18nLib[lang][key] || `i18n[${lang}][${key}] not found`;
 
   if (GM_getValue('automateSearch', true)) {
-    const showMsgUI = (type, msg, btnCallbackFunc) => {
-      let bg;
-      if (type === 'info') {
-        bg = '#003aa5';
-      } else if (type === 'success') {
-        bg = '#00a500';
-        btnCallbackFunc = () => {
-          $('#mbe-bg').remove();
-        };
-      } else if (type === 'warn') {
-        bg = '#c40000';
-        btnCallbackFunc = () => {
-          $('#mbe-bg').remove();
-        };
-      }
-      $('#mbe-bg').remove();
+    let searchTimer;
+    const showMsgUI = (bgColor, msg, btnList) => {
+      $('#mbe-msg').remove();
       $('body').append(
         $(
-          `<div id="mbe-bg">${msg}<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" id="mbe-msg-btn">
-    <!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-    <path d="M256 48a208 208 0 1 1 0 416 208 208 0 1 1 0-416zm0 464A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM175 175c-9.4 9.4-9.4 24.6 0 33.9l47 47-47 47c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l47-47 47 47c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-47-47 47-47c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0l-47 47-47-47c-9.4-9.4-24.6-9.4-33.9 0z"></path>
-  </svg>
+          `<div id="mbe-msg">${msg}<span id="mbe-btn-div"></span>
   <style>
-    #mbe-bg{position: fixed;top: 5%;left: 25%;width: 50%;padding: 10px;background: ${bg};color: #fff;border-radius: 10px;z-index: 9999;font-size: 20px;text-align: center;}
-    #mbe-msg-btn{fill: #ffffff;margin-left: 10px;width: 26px;vertical-align: -5px;cursor: pointer;}}
+    #mbe-msg{position: fixed;top: 5%;left: 25%;width: 50%;padding: 10px;background: ${bgColor};color: #fff;border-radius: 10px;z-index: 9999;font-size: 20px;text-align: center;}
+    .mbe-msg-btn{fill: #ffffff;margin-left: 10px;width: 26px;vertical-align: -5px;cursor: pointer;}}
   </style>
 </div>`
         )
       );
-      if (msg === i18n('gettingFromApiMsg')) {
-        $('#mbe-msg-btn').remove();
+      btnList.forEach((btn) => {
+        switch (btn) {
+          case 'pause':
+            $('#mbe-btn-div').append(
+              $(
+                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="mbe-msg-btn"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M464 256A208 208 0 1 0 48 256a208 208 0 1 0 416 0zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zm224-72V328c0 13.3-10.7 24-24 24s-24-10.7-24-24V184c0-13.3 10.7-24 24-24s24 10.7 24 24zm112 0V328c0 13.3-10.7 24-24 24s-24-10.7-24-24V184c0-13.3 10.7-24 24-24s24 10.7 24 24z"/></svg>`
+              ).on('click', () => {
+                clearTimeout(searchTimer);
+                pauseSearch();
+              })
+            );
+            break;
+          case 'cancel':
+            $('#mbe-btn-div').append(
+              $(
+                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="mbe-msg-btn"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M464 256A208 208 0 1 0 48 256a208 208 0 1 0 416 0zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zm192-96H320c17.7 0 32 14.3 32 32V320c0 17.7-14.3 32-32 32H192c-17.7 0-32-14.3-32-32V192c0-17.7 14.3-32 32-32z"/></svg>`
+              ).on('click', () => {
+                clearTimeout(searchTimer);
+                cancelSearch();
+              })
+            );
+            break;
+          case 'close':
+            $('#mbe-btn-div').append(
+              $(
+                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="mbe-msg-btn"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M256 48a208 208 0 1 1 0 416 208 208 0 1 1 0-416zm0 464A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM175 175c-9.4 9.4-9.4 24.6 0 33.9l47 47-47 47c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l47-47 47 47c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-47-47 47-47c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0l-47 47-47-47c-9.4-9.4-24.6-9.4-33.9 0z"/></svg>`
+              ).on('click', () => {
+                $('#mbe-msg').remove();
+              })
+            );
+            break;
+        }
+      });
+    };
+
+    const pauseSearch = () => {
+      GM_setValue('beforePauseState', GM_getValue('automateSearchState'));
+      GM_setValue('automateSearchState', 5);
+      $('#id_rh').after(
+        $(
+          `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width: 30px;fill: white;margin-top: 10px;cursor: pointer;" id="mbe-restart-btn"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M464 256A208 208 0 1 0 48 256a208 208 0 1 0 416 0zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zM188.3 147.1c7.6-4.2 16.8-4.1 24.3 .5l144 88c7.1 4.4 11.5 12.1 11.5 20.5s-4.4 16.1-11.5 20.5l-144 88c-7.4 4.5-16.7 4.7-24.3 .5s-12.3-12.2-12.3-20.9V168c0-8.7 4.7-16.7 12.3-20.9z"></path></svg>`
+        ).on('click', searchRestartFunc)
+      );
+      showMsgUI('#FEC700', i18n('searchPausedMsg'), ['close']);
+    };
+    const searchRestartFunc = () => {
+      $('#mbe-restart-btn').remove();
+      showMsgUI('#003aa5', i18n('searchRestartMsg'), []);
+      if (GM_getValue('beforePauseState') === 4) {
+        GM_setValue('automateSearchState', 4);
+        setTimeout(cdRunFunc, 1000);
+      } else {
+        GM_setValue('automateSearchState', 3);
+        setTimeout(() => {
+          sendInput();
+        }, 1000);
       }
-      $('#mbe-msg-btn').on('click', btnCallbackFunc);
     };
 
     const cancelSearch = () => {
       GM_setValue('automateSearchState', 0);
       GM_setValue('words', []);
-      showMsgUI('warn', i18n('searchCanceledMsg'));
+      showMsgUI('#c40000', i18n('searchCanceledMsg'), ['close']);
     };
 
-    const inputSend = () => {
+    const sendInput = () => {
       let words = GM_getValue('words');
       let queryList;
       if (lang === 'ja') {
@@ -199,8 +236,9 @@ jQuery(($) => {
       GM_setValue('iuIntervalMin', iuIntervalMin);
       GM_setValue('iuIntervalMax', iuIntervalMax);
       GM_setValue('minLength', minLength);
-      GM_getValue('maxLength', maxLength);
-      showMsgUI('info', i18n('gettingFromApiMsg'));
+      GM_setValue('maxLength', maxLength);
+      $('#mbe-bg').remove();
+      showMsgUI('#003aa5', i18n('gettingFromApiMsg'), []);
       let apiLang;
       if (lang === 'ja') {
         apiLang = 'jp';
@@ -221,11 +259,38 @@ jQuery(($) => {
         GM_setValue('automateSearchState', 3);
         GM_setValue('nowUnit', 1);
         GM_setValue('searchesCount', searchesNumPU - 1);
-        inputSend();
+        sendInput();
       });
     };
 
-    let searchTimer;
+    const countdownFunc = () => {
+      const diffMSec = coolDownFinTime - new Date();
+      const diffSec = Math.floor(diffMSec / 1000);
+      const sec = String(diffSec % 60).padStart(2, '0');
+      const min = String((diffSec - (diffSec % 60)) / 60).padStart(2, '0');
+      $('#mbe-countdown').text(`${min}:${sec}`);
+      if (diffMSec > 0) {
+        return;
+      }
+      GM_setValue('automateSearchState', 3);
+      GM_setValue('nowUnit', GM_getValue('nowUnit') + 1);
+      GM_setValue('searchesCount', searchesNumPU - 1);
+      sendInput();
+    };
+    const cdRunFunc = () => {
+      showMsgUI(
+        '#009e5d',
+        i18n('coolDownMsg')
+          .replace('%0', nowUnit + 1)
+          .replace('%1', unitCount)
+          .replace('%2', GM_getValue('words').length)
+          .replace('%3', searchesNumPU * unitCount),
+        ['pause', 'cancel']
+      );
+      searchTimer = setInterval(countdownFunc, 1000);
+      countdownFunc();
+    };
+
     const iuIntervalMin = GM_getValue('iuIntervalMin') * 1000;
     const iuIntervalMax = GM_getValue('iuIntervalMax') * 1000;
     const searchState = GM_getValue('automateSearchState');
@@ -242,9 +307,17 @@ jQuery(($) => {
       timeList[4],
       timeList[5]
     );
-    if (searchState === 3) {
+    if (searchState === 5) {
+      $('#id_rh').after(
+        $(
+          `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width: 30px;fill: white;margin-top: 10px;cursor: pointer;" id="mbe-restart-btn"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M464 256A208 208 0 1 0 48 256a208 208 0 1 0 416 0zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zM188.3 147.1c7.6-4.2 16.8-4.1 24.3 .5l144 88c7.1 4.4 11.5 12.1 11.5 20.5s-4.4 16.1-11.5 20.5l-144 88c-7.4 4.5-16.7 4.7-24.3 .5s-12.3-12.2-12.3-20.9V168c0-8.7 4.7-16.7 12.3-20.9z"></path></svg>`
+        ).on('click', searchRestartFunc)
+      );
+    } else if (searchState === 4) {
+      cdRunFunc();
+    } else if (searchState === 3) {
       showMsgUI(
-        'info',
+        '#006d9e',
         i18n('runningMsg')
           .replace('%0', nowUnit)
           .replace('%1', unitCount)
@@ -252,53 +325,19 @@ jQuery(($) => {
           .replace('%3', searchesNumPU)
           .replace('%4', GM_getValue('words').length)
           .replace('%5', searchesNumPU * unitCount),
-        () => {
-          clearTimeout(searchTimer);
-          cancelSearch();
-        }
+        ['pause', 'cancel']
       );
       GM_setValue('searchesCount', GM_getValue('searchesCount') - 1);
-      searchTimer = setTimeout(
-        inputSend,
-        Math.floor(Math.random() * (iuIntervalMax - iuIntervalMin)) +
-          iuIntervalMin
-      );
-    } else if (searchState === 4) {
-      showMsgUI(
-        'info',
-        i18n('coolDownMsg')
-          .replace('%0', nowUnit + 1)
-          .replace('%1', unitCount)
-          .replace('%2', GM_getValue('words').length)
-          .replace('%3', searchesNumPU * unitCount),
-        () => {
-          clearInterval(searchTimer);
-          cancelSearch();
-        }
-      );
-      const countdownFunc = () => {
-        const diffMSec = coolDownFinTime - new Date();
-        const diffSec = Math.floor(diffMSec / 1000);
-        const sec = String(diffSec % 60).padStart(2, '0');
-        const min = String((diffSec - (diffSec % 60)) / 60).padStart(2, '0');
-        $('#mbe-countdown').text(`${min}:${sec}`);
-        if (diffMSec > 0) {
-          return;
-        }
-        GM_setValue('automateSearchState', 3);
-        GM_setValue('nowUnit', GM_getValue('nowUnit') + 1);
-        GM_setValue('searchesCount', searchesNumPU - 1);
-        inputSend();
-      };
-      searchTimer = setInterval(countdownFunc, 1000);
-      countdownFunc();
+      searchTimer = setTimeout(() => {
+        sendInput();
+      }, Math.floor(Math.random() * (iuIntervalMax - iuIntervalMin)) + iuIntervalMin);
     } else if (searchState === 2) {
       GM_setValue('automateSearchState', 1);
       searchTimer = setTimeout(() => {
         location.href = 'https://www.bing.com';
       }, Math.floor(Math.random() * (iuIntervalMax - iuIntervalMin)) + iuIntervalMin);
       showMsgUI(
-        'info',
+        '#006d9e',
         i18n('runningMsg')
           .replace('%0', nowUnit)
           .replace('%1', unitCount)
@@ -306,18 +345,16 @@ jQuery(($) => {
           .replace('%3', searchesNumPU)
           .replace('%4', GM_getValue('words').length)
           .replace('%5', searchesNumPU * unitCount),
-        () => {
-          clearTimeout(searchTimer);
-          cancelSearch();
-        }
+        ['pause', 'cancel']
       );
     } else if (searchState === 1) {
       GM_setValue('automateSearchState', 0);
       showMsgUI(
-        'success',
+        '#00a500',
         i18n('searchFinishedMsg')
           .replace('%0', unitCount)
-          .replace('%1', searchesNumPU * unitCount)
+          .replace('%1', searchesNumPU * unitCount),
+        ['close']
       );
     }
 
@@ -354,7 +391,6 @@ jQuery(($) => {
     <h1>${i18n('automateSearch')}</h1><p class="mbe-warning">${i18n(
         'automateSearchWarning'
       )}</p>
-    <p class="mbe-info">${i18n('automateSearchInfo')}</p>
     <h2>${i18n('lengthLabel')}</h2>
       <label>${i18n(
         'minLengthLabel'
@@ -412,8 +448,6 @@ jQuery(($) => {
       };}
 #mbe-close {position: absolute;right: 10px;top: 10px;width: 32px;height: 32px;cursor: pointer;fill: currentColor;}
 #mbe-fg p.mbe-warning{background: rgb(196, 0, 0);color: #fff;padding: 10px;border-radius: 5px;}
-#mbe-fg p.mbe-info{background: rgb(0 86 196);color: #fff;padding: 10px;border-radius: 5px;}
-#mbe-fg p.mbe-info a{color: #ffffff;text-decoration: underline;font-weight: bold;}
 #mbe-fg label{display: inline-block;}
 #mbe-fg h1{font-size: 30px;font-weight: bold;}
 #mbe-fg h2{font-weight: bold;margin-bottom: -10px;}
