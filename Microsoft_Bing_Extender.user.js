@@ -146,14 +146,34 @@ jQuery(($) => {
       });
     };
 
-    const pauseSearch = () => {
-      GM_setValue('beforePauseState', GM_getValue('automateSearchState'));
-      GM_setValue('automateSearchState', 5);
+    const showPauseUI = () => {
       $('#id_rh').after(
         $(
           `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width: 30px;fill: white;margin-top: 10px;cursor: pointer;" id="mbe-restart-btn"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M464 256A208 208 0 1 0 48 256a208 208 0 1 0 416 0zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zM188.3 147.1c7.6-4.2 16.8-4.1 24.3 .5l144 88c7.1 4.4 11.5 12.1 11.5 20.5s-4.4 16.1-11.5 20.5l-144 88c-7.4 4.5-16.7 4.7-24.3 .5s-12.3-12.2-12.3-20.9V168c0-8.7 4.7-16.7 12.3-20.9z"></path></svg>`
         ).on('click', searchRestartFunc)
       );
+      $('#mbe-restart-btn').after(
+        $(
+          `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width: 30px;fill: white;margin-top: 10px;cursor: pointer;" id="mbe-cancel-btn"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M464 256A208 208 0 1 0 48 256a208 208 0 1 0 416 0zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zm192-96H320c17.7 0 32 14.3 32 32V320c0 17.7-14.3 32-32 32H192c-17.7 0-32-14.3-32-32V192c0-17.7 14.3-32 32-32z"/></svg>`
+        ).on('click', () => {
+          cancelSearch();
+          $('#mbe-restart-btn').remove();
+          $('#mbe-cancel-btn').remove();
+        })
+      );
+    };
+    const showSearchBtn = () => {
+      $('#id_rh').after(
+        $(
+          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" style="width: 30px;fill: white;margin-top: 10px;cursor: pointer;"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M320 0c17.7 0 32 14.3 32 32V96H472c39.8 0 72 32.2 72 72V440c0 39.8-32.2 72-72 72H168c-39.8 0-72-32.2-72-72V168c0-39.8 32.2-72 72-72H288V32c0-17.7 14.3-32 32-32zM208 384c-8.8 0-16 7.2-16 16s7.2 16 16 16h32c8.8 0 16-7.2 16-16s-7.2-16-16-16H208zm96 0c-8.8 0-16 7.2-16 16s7.2 16 16 16h32c8.8 0 16-7.2 16-16s-7.2-16-16-16H304zm96 0c-8.8 0-16 7.2-16 16s7.2 16 16 16h32c8.8 0 16-7.2 16-16s-7.2-16-16-16H400zM264 256a40 40 0 1 0 -80 0 40 40 0 1 0 80 0zm152 40a40 40 0 1 0 0-80 40 40 0 1 0 0 80zM48 224H64V416H48c-26.5 0-48-21.5-48-48V272c0-26.5 21.5-48 48-48zm544 0c26.5 0 48 21.5 48 48v96c0 26.5-21.5 48-48 48H576V224h16z"/></svg>'
+        ).on('click', showAutomateSearchUI)
+      );
+    };
+
+    const pauseSearch = () => {
+      GM_setValue('beforePauseState', GM_getValue('automateSearchState'));
+      GM_setValue('automateSearchState', 5);
+      showPauseUI();
       showMsgUI('#FEC700', i18n('searchPausedMsg'), ['close']);
     };
     const searchRestartFunc = () => {
@@ -174,6 +194,7 @@ jQuery(($) => {
       GM_setValue('automateSearchState', 0);
       GM_setValue('words', []);
       showMsgUI('#c40000', i18n('searchCanceledMsg'), ['close']);
+      showSearchBtn();
     };
 
     const sendInput = () => {
@@ -313,11 +334,7 @@ jQuery(($) => {
       timeList[5]
     );
     if (searchState === 5) {
-      $('#id_rh').after(
-        $(
-          `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width: 30px;fill: white;margin-top: 10px;cursor: pointer;" id="mbe-restart-btn"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M464 256A208 208 0 1 0 48 256a208 208 0 1 0 416 0zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zM188.3 147.1c7.6-4.2 16.8-4.1 24.3 .5l144 88c7.1 4.4 11.5 12.1 11.5 20.5s-4.4 16.1-11.5 20.5l-144 88c-7.4 4.5-16.7 4.7-24.3 .5s-12.3-12.2-12.3-20.9V168c0-8.7 4.7-16.7 12.3-20.9z"></path></svg>`
-        ).on('click', searchRestartFunc)
-      );
+      showPauseUI();
     } else if (searchState === 4) {
       cdRunFunc();
     } else if (searchState === 3) {
@@ -524,9 +541,9 @@ jQuery(($) => {
         );
       });
     };
-    GM_registerMenuCommand(i18n('automateSearchOpen'), () => {
-      showAutomateSearchUI();
-    });
+    if (GM_getValue('automateSearchState', 0) === 0) {
+      showSearchBtn();
+    }
   }
 
   let menuId = [];
