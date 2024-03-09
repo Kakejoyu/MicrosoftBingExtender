@@ -269,9 +269,15 @@ jQuery(($) => {
       const sec = String(diffSec % 60).padStart(2, '0');
       const min = String((diffSec - (diffSec % 60)) / 60).padStart(2, '0');
       $('#mbe-countdown').text(`${min}:${sec}`);
+      if (diffMSec < 60000) {
+        searchTimer = setTimeout(countdownFunc, 1000);
+      } else {
+        searchTimer = setTimeout(countdownFunc, 30000);
+      }
       if (diffMSec > 0) {
         return;
       }
+      clearTimeout(searchTimer);
       GM_setValue('automateSearchState', 3);
       GM_setValue('nowUnit', GM_getValue('nowUnit') + 1);
       GM_setValue('searchesCount', searchesNumPU - 1);
@@ -287,7 +293,6 @@ jQuery(($) => {
           .replace('%3', searchesNumPU * unitCount),
         ['pause', 'cancel']
       );
-      searchTimer = setInterval(countdownFunc, 1000);
       countdownFunc();
     };
 
