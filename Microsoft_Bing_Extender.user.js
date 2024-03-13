@@ -2,7 +2,7 @@
 // @name        Microsoft Bing Extender
 // @name:ja     Microsoft Bing Extender
 // @namespace   https://github.com/Kakejoyu/MicrosoftBingExtender
-// @version     1.1.1
+// @version     1.2.0
 // @icon        https://www.bing.com/favicon.ico
 // @description     User script to extend the functionality of Microsoft Bing. Supports automatic earning of Microsoft Reward search points with the latest specifications.
 // @description:ja  Microsoft Bingの機能を拡張するユーザースクリプト。最新仕様のMicrosoft Reward検索ポイントの自動獲得に対応しています。
@@ -75,6 +75,7 @@ jQuery(($) => {
       pauseTooltip: '検索を一時停止',
       restartTooltip: '検索を再開',
       cancelTooltip: '検索を中止',
+      search: '検索',
     },
     en: {
       automateSearch: 'Automate Search',
@@ -112,6 +113,7 @@ jQuery(($) => {
       pauseTooltip: 'Pause search',
       restartTooltip: 'Restart search',
       cancelTooltip: 'Cancel search',
+      search: 'Search',
     },
   };
   const i18n = (key) => i18nLib[lang][key] || `i18n[${lang}][${key}] not found`;
@@ -158,7 +160,7 @@ jQuery(($) => {
         .find('#HBContent > div:nth-child(3)')
         .after(
           $(
-            `<div class="hb_sect_container"><div class="hb_section hb_top_sec" id="hbsettings" tabindex="0" role="menuitem" aria-haspopup="true" aria-expanded="false" aria-controls="hbsettree"><div class="hb_titlerow"><div class="hbic_col"><span class="hbic_setting"></span></div><div class="hb_title_col">${i18n(
+            `<div class="hb_sect_container" id="mbe-setting-btn"><div class="hb_section hb_top_sec" id="hbsettings" tabindex="0" role="menuitem" aria-haspopup="true" aria-expanded="false" aria-controls="hbsettree"><div class="hb_titlerow"><div class="hbic_col"><span class="hbic_setting"></span></div><div class="hb_title_col">${i18n(
               'setting_title'
             )}</div></div></div></div>`
           ).on('click', () => {
@@ -309,6 +311,7 @@ jQuery(($) => {
 </div>`
         )
       );
+      document.title = msg;
       btnList.forEach((btn) => {
         switch (btn) {
           case 'pause':
@@ -353,16 +356,16 @@ jQuery(($) => {
     const showPauseUI = () => {
       $('#id_rh').after(
         $(
-          `<a href="javascript:void(0);" title="${i18n(
+          `<a id="mbe-restart-btn" href="javascript:void(0);" title="${i18n(
             'restartTooltip'
-          )}"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width: 30px;fill: white;margin-top: 10px;cursor: pointer;" id="mbe-restart-btn"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M464 256A208 208 0 1 0 48 256a208 208 0 1 0 416 0zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zM188.3 147.1c7.6-4.2 16.8-4.1 24.3 .5l144 88c7.1 4.4 11.5 12.1 11.5 20.5s-4.4 16.1-11.5 20.5l-144 88c-7.4 4.5-16.7 4.7-24.3 .5s-12.3-12.2-12.3-20.9V168c0-8.7 4.7-16.7 12.3-20.9z"></path></svg></a>`
+          )}"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width: 30px;fill: white;margin-top: 10px;cursor: pointer;"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M464 256A208 208 0 1 0 48 256a208 208 0 1 0 416 0zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zM188.3 147.1c7.6-4.2 16.8-4.1 24.3 .5l144 88c7.1 4.4 11.5 12.1 11.5 20.5s-4.4 16.1-11.5 20.5l-144 88c-7.4 4.5-16.7 4.7-24.3 .5s-12.3-12.2-12.3-20.9V168c0-8.7 4.7-16.7 12.3-20.9z"></path></svg></a>`
         ).on('click', searchRestartFunc)
       );
       $('#mbe-restart-btn').after(
         $(
-          `<a href="javascript:void(0);" title="${i18n(
+          `<a id="mbe-cancel-btn" href="javascript:void(0);" title="${i18n(
             'cancelTooltip'
-          )}"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width: 30px;fill: white;margin-top: 10px;cursor: pointer;" id="mbe-cancel-btn"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M464 256A208 208 0 1 0 48 256a208 208 0 1 0 416 0zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zm192-96H320c17.7 0 32 14.3 32 32V320c0 17.7-14.3 32-32 32H192c-17.7 0-32-14.3-32-32V192c0-17.7 14.3-32 32-32z"/></svg></a>`
+          )}"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width: 30px;fill: white;margin-top: 10px;cursor: pointer;"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M464 256A208 208 0 1 0 48 256a208 208 0 1 0 416 0zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zm192-96H320c17.7 0 32 14.3 32 32V320c0 17.7-14.3 32-32 32H192c-17.7 0-32-14.3-32-32V192c0-17.7 14.3-32 32-32z"/></svg></a>`
         ).on('click', () => {
           cancelSearch();
           $('#mbe-restart-btn').remove();
@@ -385,9 +388,13 @@ jQuery(($) => {
       GM_setValue('automateSearchState', 5);
       showPauseUI();
       showMsgUI('#FEC700', i18n('searchPausedMsg'), ['close']);
+      setTimeout(() => {
+        document.title = `${$('#sb_form_q').val()} - ${i18n('search')}`;
+      }, 3000);
     };
     const searchRestartFunc = () => {
       $('#mbe-restart-btn').remove();
+      $('#mbe-cancel-btn').remove();
       showMsgUI('#003aa5', i18n('searchRestartMsg'), []);
       if (GM_getValue('beforePauseState') === 4) {
         GM_setValue('automateSearchState', 4);
@@ -404,6 +411,9 @@ jQuery(($) => {
       GM_setValue('automateSearchState', 0);
       GM_setValue('words', []);
       showMsgUI('#c40000', i18n('searchCanceledMsg'), ['close']);
+      setTimeout(() => {
+        document.title = `${$('#sb_form_q').val()} - ${i18n('search')}`;
+      }, 3000);
       showSearchBtn();
     };
 
@@ -500,6 +510,12 @@ jQuery(($) => {
       const sec = String(diffSec % 60).padStart(2, '0');
       const min = String((diffSec - (diffSec % 60)) / 60).padStart(2, '0');
       $('#mbe-countdown').text(`${min}:${sec}`);
+      document.title = i18n('coolDownMsg')
+        .replace('<span id="mbe-countdown"></span>', `${min}:${sec}`)
+        .replace('%0', nowUnit + 1)
+        .replace('%1', unitCount)
+        .replace('%2', GM_getValue('words').length)
+        .replace('%3', searchesNumPU * unitCount);
       if (diffMSec < 60000) {
         searchTimer = setTimeout(countdownFunc, 1000);
       } else {
@@ -588,6 +604,9 @@ jQuery(($) => {
           .replace('%1', searchesNumPU * unitCount),
         ['close']
       );
+      setTimeout(() => {
+        document.title = 'Bing';
+      }, 3000);
     }
 
     const showAutomateSearchUI = () => {
