@@ -3,7 +3,7 @@
 | [English](https://github.com/Kakejoyu/MicrosoftBingExtender/blob/main/README.md) | 日本語 |
 |--|--|
 
-Microsoft Bingの機能を拡張するユーザースクリプト
+Microsoft Bingの機能を拡張するユーザースクリプト。最新仕様のMicrosoft Reward検索ポイントの自動獲得に対応しています。
 
 | リンク |
 |--|
@@ -16,10 +16,13 @@ Microsoft Bingの機能を拡張するユーザースクリプト
 - 検索機能の自動化。
 - ユーザースクリプトのUIテーマの切り替え。
 
+## 使い方
+
+[GitHubリポジトリのWiki](https://github.com/Kakejoyu/MicrosoftBingExtender/wiki/%E6%97%A5%E6%9C%AC%E8%AA%9E%E3%83%98%E3%83%AB%E3%83%97)をご覧ください。
+
 ## 備考
 
 - **この機能を使用した場合、MicrosoftはあなたをBANする可能性があります。自己責任で使用してください。私は一切の責任を負いません。**
-- ユーザースクリプトでは、ユーザーエージェントを変更することはできません。そのため、モバイル版でポイントを獲得するには、「[User-Agent Switcher for Chrome](https://chromewebstore.google.com/detail/user-agent-switcher-for-c/djflhoibgkdhkhhcedjiklpkjnoahfmg)」など、ユーザーエージェントを変更するブラウザ拡張機能をご利用ください。
 
 ## 必要要件
 

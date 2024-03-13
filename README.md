@@ -3,7 +3,7 @@
 | English | [日本語](https://github.com/Kakejoyu/MicrosoftBingExtender/blob/main/README_ja.md) |
 |--|--|
 
-User script to extend the functionality of Microsoft Bing
+User script to extend the functionality of Microsoft Bing. Supports automatic earning of Microsoft Reward search points with the latest specifications.
 
 | Links |
 |--|
@@ -16,10 +16,13 @@ User script to extend the functionality of Microsoft Bing
 - Automate search feature.
 - Switching UI themes of user script.
 
+## How to use
+
+See [the Wiki of the GitHub repository](https://github.com/Kakejoyu/MicrosoftBingExtender/wiki/English-Help).
+
 ## Note
 
 - **Microsoft may ban you for using Automate search feature. Use at your own risk. And I will not take any responsibility.**
-- User script cannot change the user agent. Therefore, to earn points on the mobile version, please use a browser extension that changes the user agent, such as "[User-Agent Switcher for Chrome](https://chromewebstore.google.com/detail/user-agent-switcher-for-c/djflhoibgkdhkhhcedjiklpkjnoahfmg)".
 
 ## Requirement
 
