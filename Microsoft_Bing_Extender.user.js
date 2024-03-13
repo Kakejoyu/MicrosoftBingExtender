@@ -4,18 +4,23 @@
 // @namespace   https://github.com/Kakejoyu/MicrosoftBingExtender
 // @version     1.1.1
 // @icon        https://www.bing.com/favicon.ico
-// @description     User script to extend the functionality of Microsoft Bing
-// @description:ja  Microsoft Bingの機能を拡張するユーザースクリプト
+// @description     User script to extend the functionality of Microsoft Bing. Supports automatic earning of Microsoft Reward search points with the latest specifications.
+// @description:ja  Microsoft Bingの機能を拡張するユーザースクリプト。最新仕様のMicrosoft Reward検索ポイントの自動獲得に対応しています。
 // @author      Kakejoyu
 // @supportURL  https://github.com/Kakejoyu/MicrosoftBingExtender/issues
 // @match       http*://www.bing.com/*
 // @license     MIT
-// @grant       GM_registerMenuCommand
-// @grant       GM_unregisterMenuCommand
+// @grant       GM.setValue
+// @grant       GM.getValue
+// @grant       GM.listValues
+// @grant       GM.deleteValue
 // @grant       GM_setValue
 // @grant       GM_getValue
 // @grant       GM_addStyle
+// @grant       GM_listValues
+// @grant       GM_deleteValue
 // @require     https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js
+// @require     https://greasemonkey.github.io/gm4-polyfill/gm4-polyfill.js
 // @run-at      document-end
 // @noframes
 // ==/UserScript==
@@ -23,7 +28,7 @@
 /*! Microsoft Bing Extender | MIT license | https://github.com/Kakejoyu/MicrosoftBingExtender/blob/main/LICENSE */
 
 jQuery(($) => {
-  'use strict';
+  ('use strict');
 
   let lang;
 
@@ -38,7 +43,6 @@ jQuery(($) => {
       automateSearch: '自動検索',
       highlightAnswers: '答えをハイライト',
       darkMode: 'ダークモード',
-      reload: 'リロードして設定を適用',
       automateSearchOpen: '自動検索を開く',
       gettingFromApiMsg: 'APIから単語を取得中...',
       runningMsg:
@@ -63,12 +67,19 @@ jQuery(($) => {
         'この機能を使用した場合、MicrosoftはあなたをBANする可能性があります。自己責任で使用してください。私は一切の責任を負いません。',
       searchPausedMsg: '自動検索が一時停止されました。',
       searchRestartMsg: '自動検索を再開します。',
+      setting_title: 'Microsoft Bing Extenderの設定',
+      setting_switch: '機能のON/OFFの切り替え',
+      setting_save_btn: '保存',
+      setting_reset_btn: 'リセット',
+      closeTooltip: '閉じる',
+      pauseTooltip: '検索を一時停止',
+      restartTooltip: '検索を再開',
+      cancelTooltip: '検索を中止',
     },
     en: {
       automateSearch: 'Automate Search',
       highlightAnswers: 'Highlight Answers',
       darkMode: 'Dark Mode',
-      reload: 'Reload and apply settings',
       automateSearchOpen: 'Open Automate Search',
       gettingFromApiMsg: 'Getting words from API...',
       runningMsg:
@@ -93,11 +104,198 @@ jQuery(($) => {
         'Microsoft may ban you for using this feature. Use at your own risk. And I will not take any responsibility.',
       searchPausedMsg: 'Automatic search has been paused.',
       searchRestartMsg: 'Restart automatic search.',
+      setting_title: 'Setting of Microsoft Bing Extender',
+      setting_switch: 'Switching functions ON/OFF',
+      setting_save_btn: 'Save',
+      setting_reset_btn: 'Reset',
+      closeTooltip: 'Close',
+      pauseTooltip: 'Pause search',
+      restartTooltip: 'Restart search',
+      cancelTooltip: 'Cancel search',
     },
   };
   const i18n = (key) => i18nLib[lang][key] || `i18n[${lang}][${key}] not found`;
 
-  if (GM_getValue('automateSearch', true)) {
+  let menuId = [];
+  const initConfig = () => {
+    if (menuId.length) {
+      const len = menuId.length;
+      for (let i = 0; i < len; i++) {
+        GM_unregisterMenuCommand(menuId[i]);
+      }
+    }
+    const menu = [
+      ['automateSearch', true],
+      ['highlightAnswers', true],
+      ['darkMode', true],
+    ];
+    const len = menu.length;
+    for (let i = 0; i < len; i++) {
+      const item = menu[i][0];
+      menu[i][1] = GM_getValue(item);
+      if (menu[i][1] === null || menu[i][1] === undefined) {
+        GM_setValue(item, true);
+        menu[i][1] = true;
+      }
+    }
+
+    return Object.freeze({
+      automateSearch: menu[0][1],
+      highlightAnswers: menu[1][1],
+      darkMode: menu[2][1],
+    });
+  };
+  const config = initConfig();
+
+  const callback = function (mutations, observer) {
+    for (let i = 0, len = mutations.length; i < len; i++) {
+      const mutation = mutations[i];
+      if (mutation.type !== 'childList' || $('#mbe-setting-btn').length > 0) {
+        continue;
+      }
+
+      $(mutation.target)
+        .find('#HBContent > div:nth-child(3)')
+        .after(
+          $(
+            `<div class="hb_sect_container"><div class="hb_section hb_top_sec" id="hbsettings" tabindex="0" role="menuitem" aria-haspopup="true" aria-expanded="false" aria-controls="hbsettree"><div class="hb_titlerow"><div class="hbic_col"><span class="hbic_setting"></span></div><div class="hb_title_col">${i18n(
+              'setting_title'
+            )}</div></div></div></div>`
+          ).on('click', () => {
+            let cssValLib;
+            if (config.darkMode) {
+              // ダークテーマ
+              cssValLib = {
+                fgBg: '#111111',
+                fgColor: '#ffffff',
+              };
+            } else {
+              // ライトテーマ
+              cssValLib = {
+                fgBg: '#ffffff',
+                fgColor: '#111111',
+              };
+            }
+
+            $('body').append(`<div id="mbe-bg">
+    <div id="mbe-fg">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" id="mbe-close"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+            <path d="M256 48a208 208 0 1 1 0 416 208 208 0 1 1 0-416zm0 464A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM175 175c-9.4 9.4-9.4 24.6 0 33.9l47 47-47 47c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l47-47 47 47c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-47-47 47-47c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0l-47 47-47-47c-9.4-9.4-24.6-9.4-33.9 0z"></path>
+        </svg>
+        <h1>${i18n('setting_title')}</h1>
+        <div id="mbe-settings">
+            <h2>${i18n('setting_switch')}</h2>
+            <label class="mbe-toggle-box"><input type="checkbox" name="automateSearch" /><div><div></div></div>${i18n(
+              'automateSearch'
+            )}</label>
+            <label class="mbe-toggle-box"><input type="checkbox" name="highlightAnswers" /><div><div></div></div>${i18n(
+              'highlightAnswers'
+            )}</label>
+            <label class="mbe-toggle-box"><input type="checkbox" name="darkMode" /><div><div></div></div>${i18n(
+              'darkMode'
+            )}</label>
+        </div>
+        <div id="mbe-btns">
+            <button type="button" title="${i18n(
+              'setting_save_btn'
+            )}" id="mbe-save-btn">${i18n('setting_save_btn')}</button>
+            <button type="button" title="${i18n(
+              'setting_reset_btn'
+            )}" id="mbe-reset-btn">${i18n('setting_reset_btn')}</button>
+        </div>
+    </div>
+    <style>
+        body {overflow: hidden;}
+        #mbe-bg {position: fixed;z-index: 999999;background-color: rgba(0, 0, 0, 0.8);left: 0px;top: 0px;user-select: none;-moz-user-select: none;}
+        #mbe-fg {width: 50%;height: 82%;padding: 15px;position: absolute;top: 10%;left: 25%;background: ${
+          cssValLib['fgBg']
+        };border-radius: 20px;}
+        #mbe-fg * {margin: 7px 0;font-family: sans-serif;font-size: 15px;color: ${
+          cssValLib['fgColor']
+        };}
+        #mbe-fg h1 {font-size: 25px;font-weight: bold;}
+        #mbe-fg h2 {font-size: 20px;font-weight: bold;}
+        #mbe-close {position: absolute;right: 10px;top: 10px;width: 32px;height: 32px;cursor: pointer;fill: currentColor;}
+        #mbe-settings{height: 82%;overflow-y: scroll;}
+        #mbe-fg label.mbe-toggle-box {display: block;width: fit-content;cursor: pointer;}
+        #mbe-fg label.mbe-toggle-box * {margin: 0;}
+        #mbe-fg label.mbe-toggle-box input {display: none;}
+        #mbe-fg label.mbe-toggle-box input + div {display: inline-block;vertical-align: middle;margin-right: 10px;width: 50px;height: 24px;padding:2px;border-radius: 20px;background: #8a8a8a;position: relative;}
+        #mbe-fg label.mbe-toggle-box input:checked + div {background: #0096fa;}
+        #mbe-fg label.mbe-toggle-box input + div div {position: absolute;width: 24px;height: 24px;background: #ffffff;border-radius: 12px;top: 2px;left: 4%;transition: left 0.05s linear;}
+        #mbe-fg label.mbe-toggle-box input:checked + div div {left: 52%;}
+        #mbe-btns {display: flex;justify-content: center;}
+        #mbe-btns button#mbe-save-btn, #mbe-btns button#mbe-reset-btn {font-size: 20px;width: 100px;height: 40px;border: none;border-radius: 10px;cursor: pointer;color: #ffffff;}
+        #mbe-btns button#mbe-save-btn {background: #00b000;margin-right: 20px;}
+        #mbe-btns button#mbe-reset-btn {background: #b00000;margin-left: 20px;}
+    </style>
+</div>`);
+            $('#mbe-bg').css({
+              width: document.documentElement.clientWidth + 'px',
+              height: document.documentElement.clientHeight + 'px',
+            });
+            let resizeTimer = null;
+            $(window).on('resize', () => {
+              if (resizeTimer !== null) {
+                clearTimeout(resizeTimer);
+              }
+              resizeTimer = setTimeout(() => {
+                $('#mbe-bg').css({
+                  width: document.documentElement.clientWidth + 'px',
+                  height: document.documentElement.clientHeight + 'px',
+                });
+              }, 500);
+            });
+            $('#mbe-close').click(function () {
+              $('#mbe-bg').remove();
+            });
+
+            $('#mbe-fg')
+              .find('input[type="checkbox"]')
+              .each(function () {
+                const $checkbox = $(this);
+                const name = $checkbox.attr('name');
+                GM.getValue(name, true).then((value) => {
+                  $checkbox.prop('checked', value);
+                });
+              });
+
+            $('#mbe-fg')
+              .find('#mbe-save-btn')
+              .on('click', () => {
+                $('#mbe-fg')
+                  .find('input[type="checkbox"]')
+                  .each(function () {
+                    const $checkbox = $(this);
+                    const name = $checkbox.attr('name');
+                    const checked = $checkbox.prop('checked');
+                    GM.setValue(name, checked);
+                  });
+                location.reload();
+              });
+            $('#mbe-fg')
+              .find('#mbe-reset-btn')
+              .on('click', () => {
+                if (confirm(i18n('setting_reset_confirm'))) {
+                  GM.listValues().then((keys) => {
+                    keys.forEach((key) => {
+                      GM.deleteValue(key);
+                    });
+                    location.reload();
+                  });
+                }
+              });
+          })
+        );
+    }
+  };
+  const observer = new MutationObserver(callback);
+  observer.observe(document.getElementsByTagName('body')[0], {
+    childList: true,
+    subtree: true,
+  });
+
+  if (config.automateSearch) {
     let searchTimer;
     const showMsgUI = (bgColor, msg, btnList) => {
       $('#mbe-msg').remove();
@@ -116,7 +314,9 @@ jQuery(($) => {
           case 'pause':
             $('#mbe-btn-div').append(
               $(
-                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="mbe-msg-btn"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M464 256A208 208 0 1 0 48 256a208 208 0 1 0 416 0zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zm224-72V328c0 13.3-10.7 24-24 24s-24-10.7-24-24V184c0-13.3 10.7-24 24-24s24 10.7 24 24zm112 0V328c0 13.3-10.7 24-24 24s-24-10.7-24-24V184c0-13.3 10.7-24 24-24s24 10.7 24 24z"/></svg>`
+                `<a href="javascript:void(0);" title="${i18n(
+                  'pauseTooltip'
+                )}"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="mbe-msg-btn"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M464 256A208 208 0 1 0 48 256a208 208 0 1 0 416 0zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zm224-72V328c0 13.3-10.7 24-24 24s-24-10.7-24-24V184c0-13.3 10.7-24 24-24s24 10.7 24 24zm112 0V328c0 13.3-10.7 24-24 24s-24-10.7-24-24V184c0-13.3 10.7-24 24-24s24 10.7 24 24z"/></svg></a>`
               ).on('click', () => {
                 clearTimeout(searchTimer);
                 pauseSearch();
@@ -126,7 +326,9 @@ jQuery(($) => {
           case 'cancel':
             $('#mbe-btn-div').append(
               $(
-                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="mbe-msg-btn"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M464 256A208 208 0 1 0 48 256a208 208 0 1 0 416 0zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zm192-96H320c17.7 0 32 14.3 32 32V320c0 17.7-14.3 32-32 32H192c-17.7 0-32-14.3-32-32V192c0-17.7 14.3-32 32-32z"/></svg>`
+                `<a href="javascript:void(0);" title="${i18n(
+                  'cancelTooltip'
+                )}"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="mbe-msg-btn"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M464 256A208 208 0 1 0 48 256a208 208 0 1 0 416 0zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zm192-96H320c17.7 0 32 14.3 32 32V320c0 17.7-14.3 32-32 32H192c-17.7 0-32-14.3-32-32V192c0-17.7 14.3-32 32-32z"/></svg></a>`
               ).on('click', () => {
                 clearTimeout(searchTimer);
                 cancelSearch();
@@ -136,7 +338,9 @@ jQuery(($) => {
           case 'close':
             $('#mbe-btn-div').append(
               $(
-                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="mbe-msg-btn"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M256 48a208 208 0 1 1 0 416 208 208 0 1 1 0-416zm0 464A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM175 175c-9.4 9.4-9.4 24.6 0 33.9l47 47-47 47c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l47-47 47 47c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-47-47 47-47c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0l-47 47-47-47c-9.4-9.4-24.6-9.4-33.9 0z"/></svg>`
+                `<a href="javascript:void(0);" title="${i18n(
+                  'closeTooltip'
+                )}"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="mbe-msg-btn"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M256 48a208 208 0 1 1 0 416 208 208 0 1 1 0-416zm0 464A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM175 175c-9.4 9.4-9.4 24.6 0 33.9l47 47-47 47c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l47-47 47 47c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-47-47 47-47c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0l-47 47-47-47c-9.4-9.4-24.6-9.4-33.9 0z"/></svg></a>`
               ).on('click', () => {
                 $('#mbe-msg').remove();
               })
@@ -149,12 +353,16 @@ jQuery(($) => {
     const showPauseUI = () => {
       $('#id_rh').after(
         $(
-          `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width: 30px;fill: white;margin-top: 10px;cursor: pointer;" id="mbe-restart-btn"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M464 256A208 208 0 1 0 48 256a208 208 0 1 0 416 0zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zM188.3 147.1c7.6-4.2 16.8-4.1 24.3 .5l144 88c7.1 4.4 11.5 12.1 11.5 20.5s-4.4 16.1-11.5 20.5l-144 88c-7.4 4.5-16.7 4.7-24.3 .5s-12.3-12.2-12.3-20.9V168c0-8.7 4.7-16.7 12.3-20.9z"></path></svg>`
+          `<a href="javascript:void(0);" title="${i18n(
+            'restartTooltip'
+          )}"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width: 30px;fill: white;margin-top: 10px;cursor: pointer;" id="mbe-restart-btn"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M464 256A208 208 0 1 0 48 256a208 208 0 1 0 416 0zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zM188.3 147.1c7.6-4.2 16.8-4.1 24.3 .5l144 88c7.1 4.4 11.5 12.1 11.5 20.5s-4.4 16.1-11.5 20.5l-144 88c-7.4 4.5-16.7 4.7-24.3 .5s-12.3-12.2-12.3-20.9V168c0-8.7 4.7-16.7 12.3-20.9z"></path></svg></a>`
         ).on('click', searchRestartFunc)
       );
       $('#mbe-restart-btn').after(
         $(
-          `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width: 30px;fill: white;margin-top: 10px;cursor: pointer;" id="mbe-cancel-btn"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M464 256A208 208 0 1 0 48 256a208 208 0 1 0 416 0zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zm192-96H320c17.7 0 32 14.3 32 32V320c0 17.7-14.3 32-32 32H192c-17.7 0-32-14.3-32-32V192c0-17.7 14.3-32 32-32z"/></svg>`
+          `<a href="javascript:void(0);" title="${i18n(
+            'cancelTooltip'
+          )}"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width: 30px;fill: white;margin-top: 10px;cursor: pointer;" id="mbe-cancel-btn"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M464 256A208 208 0 1 0 48 256a208 208 0 1 0 416 0zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zm192-96H320c17.7 0 32 14.3 32 32V320c0 17.7-14.3 32-32 32H192c-17.7 0-32-14.3-32-32V192c0-17.7 14.3-32 32-32z"/></svg></a>`
         ).on('click', () => {
           cancelSearch();
           $('#mbe-restart-btn').remove();
@@ -165,7 +373,9 @@ jQuery(($) => {
     const showSearchBtn = () => {
       $('#id_rh').after(
         $(
-          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" style="width: 30px;fill: white;margin-top: 10px;cursor: pointer;"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M320 0c17.7 0 32 14.3 32 32V96H472c39.8 0 72 32.2 72 72V440c0 39.8-32.2 72-72 72H168c-39.8 0-72-32.2-72-72V168c0-39.8 32.2-72 72-72H288V32c0-17.7 14.3-32 32-32zM208 384c-8.8 0-16 7.2-16 16s7.2 16 16 16h32c8.8 0 16-7.2 16-16s-7.2-16-16-16H208zm96 0c-8.8 0-16 7.2-16 16s7.2 16 16 16h32c8.8 0 16-7.2 16-16s-7.2-16-16-16H304zm96 0c-8.8 0-16 7.2-16 16s7.2 16 16 16h32c8.8 0 16-7.2 16-16s-7.2-16-16-16H400zM264 256a40 40 0 1 0 -80 0 40 40 0 1 0 80 0zm152 40a40 40 0 1 0 0-80 40 40 0 1 0 0 80zM48 224H64V416H48c-26.5 0-48-21.5-48-48V272c0-26.5 21.5-48 48-48zm544 0c26.5 0 48 21.5 48 48v96c0 26.5-21.5 48-48 48H576V224h16z"/></svg>'
+          `<a href="javascript:void(0);" title="${i18n(
+            'automateSearchOpen'
+          )}"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" style="width: 30px;fill: white;margin-top: 10px;cursor: pointer;"><!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M320 0c17.7 0 32 14.3 32 32V96H472c39.8 0 72 32.2 72 72V440c0 39.8-32.2 72-72 72H168c-39.8 0-72-32.2-72-72V168c0-39.8 32.2-72 72-72H288V32c0-17.7 14.3-32 32-32zM208 384c-8.8 0-16 7.2-16 16s7.2 16 16 16h32c8.8 0 16-7.2 16-16s-7.2-16-16-16H208zm96 0c-8.8 0-16 7.2-16 16s7.2 16 16 16h32c8.8 0 16-7.2 16-16s-7.2-16-16-16H304zm96 0c-8.8 0-16 7.2-16 16s7.2 16 16 16h32c8.8 0 16-7.2 16-16s-7.2-16-16-16H400zM264 256a40 40 0 1 0 -80 0 40 40 0 1 0 80 0zm152 40a40 40 0 1 0 0-80 40 40 0 1 0 0 80zM48 224H64V416H48c-26.5 0-48-21.5-48-48V272c0-26.5 21.5-48 48-48zm544 0c26.5 0 48 21.5 48 48v96c0 26.5-21.5 48-48 48H576V224h16z"/></svg></a>`
         ).on('click', showAutomateSearchUI)
       );
     };
@@ -545,53 +755,6 @@ jQuery(($) => {
       showSearchBtn();
     }
   }
-
-  let menuId = [];
-  const registerMenu = () => {
-    if (menuId.length) {
-      const len = menuId.length;
-      for (let i = 0; i < len; i++) {
-        GM_unregisterMenuCommand(menuId[i]);
-      }
-    }
-    const menu = [
-      ['automateSearch', true],
-      ['highlightAnswers', true],
-      ['darkMode', true],
-    ];
-    const len = menu.length;
-    for (let i = 0; i < len; i++) {
-      const item = menu[i][0];
-      menu[i][1] = GM_getValue(item);
-      if (menu[i][1] === null || menu[i][1] === undefined) {
-        GM_setValue(item, true);
-        menu[i][1] = true;
-      }
-      menuId[i] = GM_registerMenuCommand(
-        `${menu[i][1] ? '✅' : '❌'} ${i18n(item)}`,
-        () => {
-          GM_setValue(item, !menu[i][1]);
-          registerMenu();
-        },
-        { autoClose: false }
-      );
-    }
-
-    menuId[menuId.length + 1] = GM_registerMenuCommand(
-      i18n('reload'),
-      () => {
-        location.reload();
-      },
-      { autoClose: false }
-    );
-
-    return Object.freeze({
-      automateSearch: menu[0][1],
-      highlightAnswers: menu[1][1],
-      darkMode: menu[2][1],
-    });
-  };
-  const config = registerMenu();
 
   if (config.highlightAnswers) {
     let cssValLib;
